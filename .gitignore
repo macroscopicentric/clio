@@ -1,9 +1,12 @@
 /.bundle/
 /.yardoc
 /Gemfile.lock
+/config.yml
 /_yardoc/
 /coverage/
 /doc/
 /pkg/
 /spec/reports/
 /tmp/
+*.json
+*.csv
