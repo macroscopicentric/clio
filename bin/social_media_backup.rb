@@ -11,6 +11,6 @@ require 'yaml'
 
 config = YAML.load_file('config.yml')
 
-twitter_backup = SocialMediaBackup::Twitter.new(backup_file: 'test.json', config: config)
+twitter_backup = SocialMediaBackup::Twitter.new(config, 'test.json')
 twitter_backup.import_and_merge_twitter_archive('tweets.csv')
 twitter_backup.save

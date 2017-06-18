@@ -20,12 +20,12 @@ class SocialMediaBackup
 			'Twitter::Media::Video' => :video
 		}
 
-		attr_reader :tweets
+		attr_accessor :tweets
 
-		def initialize(backup_file:, config:)
+		def initialize(config=nil, backup_file=nil)
+			@client = configure_client(config) if config
+			# @screen_name = config['screen_name']
 			@backup_file = backup_file
-			@client = configure_client(config)
-			@screen_name = config['screen_name']
 			# @tweets is a hash where each key is a tweet id and the value is
 			# the full content of the tweet as a hash.
 			@tweets = {}
@@ -61,9 +61,9 @@ class SocialMediaBackup
 			return imported_tweets.map {|tweet| self.format_csv_tweet(tweet)}
 		end
 
+		# Expects an array of hashes.
 		def merge_tweets(imported_tweets)
 			imported_tweets.each do |imported_tweet|
-				puts imported_tweet
 				id = imported_tweet[:id]
 				@tweets[id] = imported_tweet unless self.tweet_in_tweets?(id)
 			end
