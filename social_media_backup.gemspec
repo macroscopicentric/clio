@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["rachel.b.king@gmail.com"]
 
   spec.summary       = %q{Back up a variety of social media accounts.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.homepage      = "https://github.com/macroscopicentric/social_media_backup"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
