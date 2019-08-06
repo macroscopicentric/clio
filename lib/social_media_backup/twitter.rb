@@ -46,6 +46,9 @@ class SocialMediaBackup
 			self.merge_tweets(formatted_tweets)
 		end
 
+		# Import tweets from an archive downloaded from Twitter. See
+		# https://help.twitter.com/en/managing-your-account/accessing-your-twitter-data
+		# for more information on how to download your own archive.
 		def import_twitter_archive(file_path)
 			imported_tweets = CSV.read(file_path, headers: true)
 			return imported_tweets
@@ -129,8 +132,15 @@ class SocialMediaBackup
 				tweets = @client.user_timeline(@screen_name, **opts, trim_user: true)
 				return tweets
 			rescue ::Twitter::Error::TooManyRequests => e
-				puts 'too many requests!'
-				sleep e.rate_limit.reset_in + 1
+				rate_limit_length = e.rate_limit.reset_in
+				rate_limit_length_in_minutes = rate_limit_length / 60
+
+				puts %Q(
+I'm being rate-limited by Twitter! Going to sleep for
+#{rate_limit_length_in_minutes} minutes and then trying to fetch more tweets.
+				)
+
+				sleep rate_limit_length + 1
 				retry
 			end
 		end
