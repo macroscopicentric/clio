@@ -3,63 +3,115 @@ require_relative '../spec_helper'
 describe 'SocialMediaBackup::Twitter' do
 
 	let(:tweet_text) { 'Exciting stuff happened.' }
-	let(:created_at) { '2017-06-18' }
-	let(:media_url) { 'example.com/some_address' }
 
 	let(:tweet) do
 		{
 			id: 1,
-			created_at: created_at,
+			created_at: '2017-06-18 00:00:00 +0000',
 			text: tweet_text,
 			retweet: false,
-			original_tweet: '',
-			original_user: '',
+			original_tweet: nil,
+			original_user: nil,
 			reply: false,
-			reply_to: '',
-			media: [
-				{ type: :url, id: nil, url: media_url }
-			],
+			reply_to: nil,
+			media: []
 		}
 	end
 
-	context '#format_csv_tweet' do
+	context '#format_archive_tweet' do
 
 		# The expected format for a tweet from the Twitter archive.
-		let(:csv_tweet) do
-			CSV::Row.new(
-				[
-					'tweet_id',
-					'in_reply_to_status_id',
-					'in_reply_to_user_id',
-					'timestamp',
-					'source',
-					'text',
-					'retweeted_status_id',
-					'retweeted_status_user_id',
-					'retweeted_status_timestamp',
-					'expanded_urls'
-				],
-				[
-					'1',
-					'',
-					'',
-					created_at,
-					'example.com',
-					tweet_text,
-					'',
-					'',
-					'',
-					"#{media_url},#{media_url}"
-				]
-			)
+		let(:archive_tweet) do
+			{
+				'id' => '1',
+				'created_at' => 'Sun Jun 18 00:00:00 +0000 2017',
+				'full_text' => tweet_text,
+				'entities' => {}
+
+			}
 		end
 
-		it "formats a csv tweet correctly" do
-			twitter_backup = SocialMediaBackup::Twitter.new
-			formatted_tweet = twitter_backup.format_csv_tweet(csv_tweet)
+		let(:archive_reply_tweet) do
+			{
+				'in_reply_to_status_id' => '1',
+				'id' => '2',
+				'created_at' => 'Sun Aug 04 13:51:00 +0000 2019',
+				'full_text' => 'This is a reply tweet.',
+				'entities' => {}
+			}
+		end
 
-			expect(formatted_tweet[:media].length).to be(1)
+		let(:username) { 'username' }
+		let(:username_id) { '317' }
+
+		let(:archive_retweeted_tweet) do
+			{
+				'id' => '3',
+				'created_at' => 'Sun Aug 04 22:51:00 +0000 2019',
+				'full_text' => "RT @#{username}: This is a retweet.",
+				'entities' => {
+					'urls' => [],
+					'user_mentions' => [
+						{
+							'name' => 'Username',
+							'screen_name' => 'username',
+							'id' => '317'
+						},
+						{
+							'name' => 'Fake Username',
+							'screen_name' => 'fake_username',
+							'id' => '775'
+						}
+					]
+				}
+			}
+		end
+
+		let(:archive_tweet_with_media) do
+			{
+				'id' => '4',
+				'created_at' => 'Sun Aug 04 22:51:00 +0000 2019',
+				'full_text' => 'This is a tweet with media.',
+				'entities' => {
+					'media' => [
+						{
+							'media_url' => 'example.com/image.png',
+							'id' => '34',
+							'type' => 'photo'
+						}
+					]
+				}
+			}
+		end
+
+		it "formats a basic tweet from the Twitter archive correctly" do
+			twitter_backup = SocialMediaBackup::Twitter.new
+			formatted_tweet = twitter_backup.format_archive_tweet(archive_tweet)
+
 			expect(formatted_tweet).to eq(tweet)
+		end
+
+		it "formats a reply tweet from the Twitter archive correctly" do
+			twitter_backup = SocialMediaBackup::Twitter.new
+			formatted_tweet = twitter_backup.format_archive_tweet(archive_reply_tweet)
+
+			expect(formatted_tweet).to include(reply: true)
+			expect(formatted_tweet[:reply_to]).to be_an(Integer)
+		end
+
+		it "formats a retweet from the Twitter archive correctly" do
+			twitter_backup = SocialMediaBackup::Twitter.new
+			formatted_tweet = twitter_backup.format_archive_tweet(archive_retweeted_tweet)
+
+			expect(formatted_tweet).to include(retweet: true)
+			expect(formatted_tweet[:original_user]).to eq(username_id.to_i)
+		end
+
+		it "formats a tweet with media from the Twitter archive correctly" do
+			twitter_backup = SocialMediaBackup::Twitter.new
+			formatted_tweet = twitter_backup.format_archive_tweet(archive_tweet_with_media)
+
+			expect(formatted_tweet[:media]).to_not be_empty
 		end
 
 	end

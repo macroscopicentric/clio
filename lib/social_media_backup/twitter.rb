@@ -2,9 +2,13 @@
 require 'json'
 require 'csv'
 require 'twitter'
+require 'date'
 
 class SocialMediaBackup
 	class Twitter
+		# TODO: update twitter archive methods to deal with new twitter archive style
+		# TODO: just use the twitter gem Tweet class to handle tweets in memory you dingdong
+		# TODO: following, followers, likes, and dms?
 
 		MEDIA_TYPES = {
 			'Twitter::Media::AnimatedGif' => 'animated_gif',
@@ -13,6 +17,8 @@ class SocialMediaBackup
 		}
 
 		TWEET_COUNT_INCREMENTER = 100000000000000
+
+		ARCHIVE_FILE_PREFIX = 'window.YTD.tweet.part0 = '
 
 		attr_accessor :tweets
 
@@ -40,7 +46,7 @@ class SocialMediaBackup
 		# only allows you to GET the most recent 3200 tweets, so anything older
 		# than that needs to be downloaded manually from Twitter through the
 		# GUI and then imported via this method.
-		def import_and_merge_twitter_archive(file_path)
+		def import_and_merge_twitter_archive(archive_folder)
 			imported_tweets = self.import_twitter_archive(file_path)
 			formatted_tweets = self.format_all_imported_tweets(imported_tweets)
 			self.merge_tweets(formatted_tweets)
@@ -49,12 +55,13 @@ class SocialMediaBackup
 		# Import tweets from an archive downloaded from Twitter. See
 		# https://help.twitter.com/en/managing-your-account/accessing-your-twitter-data
 		# for more information on how to download your own archive.
+		# The files are almost perfect JSON except for a weird JS prefix,
+		# so let's remove that and then actually JSONify the tweets.
 		def import_twitter_archive(file_path)
-			imported_tweets = CSV.read(file_path, headers: true)
-			return imported_tweets
+			return JSON.load(IO.read(file_path).remove_prefix(ARCHIVE_FILE_PREFIX))
 		end
 
-		# Bulk format tweets downloaded via Twitter's archive button.
+		# Bulk format tweets downloaded via Twitter's archive action.
 		def format_all_imported_tweets(imported_tweets)
 			return imported_tweets.map { |tweet| self.format_csv_tweet(tweet) }
 		end
@@ -138,6 +145,9 @@ class SocialMediaBackup
 				puts %Q(
 I'm being rate-limited by Twitter! Going to sleep for
 #{rate_limit_length_in_minutes} minutes and then trying to fetch more tweets.
+To speed this up, you might want to fetch your Twitter
+archive from Twitter itself. Instructions are here:
+https://help.twitter.com/en/managing-your-account/accessing-your-twitter-data
 				)
 
 				sleep rate_limit_length + 1
@@ -160,7 +170,7 @@ I'm being rate-limited by Twitter! Going to sleep for
 		end
 
 		def save
-			File.open(@backup_file, 'w') {|f| f.write(JSON.pretty_generate(@tweets))}
+			File.open(@backup_file, 'w') { |f| f.write(JSON.pretty_generate(@tweets)) }
 		end
 
 		# Format a tweet hash from a Tweet object from the Twitter gem.
@@ -168,7 +178,7 @@ I'm being rate-limited by Twitter! Going to sleep for
 			{
 				id: tweet.id,
 				created_at: tweet.created_at,
-				text: tweet.text,
+				text: tweet.full_text,
 				retweet: tweet.retweet?,
 				original_tweet: tweet.retweeted_status.id,
 				original_user: tweet.retweeted_status.user.id,
@@ -188,29 +198,76 @@ I'm being rate-limited by Twitter! Going to sleep for
 			end
 		end
 
-		# Format a tweet hash from a hash imported from the Twitter CSV
-		# archiving button.
-		def format_csv_tweet(tweet)
+		# Format a tweet hash from a hash imported from the Twitter
+		# archive action.
+		def format_archive_tweet(tweet)
 			{
-				id: tweet['tweet_id'].to_i,
-				created_at: tweet['timestamp'],
-				text: tweet['text'],
-				retweet: tweet['retweeted_status_id'].empty? ? false : true,
-				original_tweet: tweet['retweeted_status_id'],
-				original_user: tweet['retweeted_status_user_id'],
-				reply: tweet['in_reply_to_status_id'].empty? ? false : true,
-				reply_to: tweet['in_reply_to_status_id'],
-				media: self.format_csv_media_array(tweet)
+				id: tweet['id'].to_i,
+				created_at: self.convert_datetime(tweet),
+				text: tweet['full_text'],
+				retweet: self.retweet?(tweet),
+				original_tweet: self.get_original_tweet_status_id(tweet),
+				original_user: self.get_original_tweet_user_id(tweet),
+				reply: self.reply?(tweet),
+				reply_to: self.get_reply_to_status_id(tweet),
+				media: self.format_archive_media_array(tweet)
 			}
 		end
 
-		def format_csv_media_array(tweet)
-			#Need to turn into a set first because there are a lot of repeat expanded_urls for some reason.
-			tweet['expanded_urls'].split(',').uniq.map do |url|
+		def convert_datetime(tweet)
+			return DateTime.parse(tweet['created_at']).strftime("%F %T %z")
+		end
+
+		# This would be a hell of a lot easier if the Twitter JSON
+		# archive actually matched their API docs, but for some
+		# reason they've decided to ditch the spectacularly useful
+		# `retweeted_status` field in the archive, so we're stuck
+		# with some really ugly parsing to figure out retweet data.
+		def retweet?(tweet)
+			return tweet['full_text'].start_with?('RT @')
+		end
+
+		# This may or may not exist for a retweet in the archive, yay.
+		# If it doesn't exist here it doesn't exist in the data at all
+		# so nil is fine.
+		def get_original_tweet_status_id(tweet)
+			return nil if not self.retweet?(tweet)
+
+			begin
+				return tweet['entities']['media'].first['source_status_id'].to_i
+			rescue NoMethodError # love me some poorly structured data
+				return nil
+			end
+		end
+
+		def get_original_tweet_user_id(tweet)
+			return nil if not self.retweet?(tweet)
+
+			source_user_screen_name = tweet['full_text'].match(/RT @(.*):/).captures.first
+
+			original_tweet_user_id = tweet['entities']['user_mentions'].find { |user|
+				user['screen_name'] == source_user_screen_name
+			}['id']
+
+			return original_tweet_user_id.to_i
+		end
+
+		def reply?(tweet)
+			return tweet['in_reply_to_status_id'].nil? ? false : true
+		end
+
+		def get_reply_to_status_id(tweet)
+			return self.reply?(tweet) ? tweet['in_reply_to_status_id'].to_i : nil
+		end
+
+		def format_archive_media_array(tweet)
+			return [] if not tweet['entities']['media']
+
+			tweet['entities']['media'].map do |media|
 				{
-					type: :url,
-					id: nil,
-					url: url
+					type: media['type'].to_sym,
+					id: media['id'],
+					url: media['media_url']
 				}
 			end
 		end
