@@ -3,16 +3,18 @@
 ## Stuff to Get Back Basic Functionality
 
 1. verify Ruby upgrade, bundler version jump, and unpinned rspec version haven't caused basic runtime errors
-2.
+2. pass in filepath for twitter archive
 
 ## Stuff That Would Be Nice to Automate
 
 1. identifying when you need a twitter archive
 2. going to fetch the twitter archive
 3. set up some sort of cron/perma process?
+4. make it an interactive cli for things like grabbing the twitter archive or (eventually) inputting handles
 
 ## Expected Basic MVP functionality
 
-1. add an actual database lol, instead of just saving to csv (open question: actually stick to postgres as originally proposed?)
-2. add new platforms (Wordpress, Instagram, Tiktok?, Tumblr?)
-3. actually build out the SocialMediaBackup class as a layer between the bin script and the Twitter class.
+1. how am i currently doing auth tokens etc (did i really just hardcode in config.yml, incredible), how should i be doing that
+2. add an actual database lol, instead of just saving to csv (open question: actually stick to postgres as originally proposed?)
+3. add new platforms (Wordpress, Instagram, Mastodon, Tiktok?, Tumblr?)
+4. actually build out the SocialMediaBackup class as a layer between the bin script and the Twitter class.

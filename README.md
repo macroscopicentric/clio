@@ -27,7 +27,7 @@ Or install it yourself as:
 Use the bin file as the entrypoint, ex:
 
 ```shell
-bin/social_media_backup.rb [twitter_archive_file_path]
+bin/social_media_backup.rb
 ```
 
 ## Development

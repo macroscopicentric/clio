@@ -1,0 +1,3 @@
+# Wishlist
+
+What would I want this to be if I could wave a magic wand? TBH I'd want it to be a web interface, like a local server running on Node.js that gives you a web interface (to save me from otherwise having to write a GUI, but provide something other than a CLI). But I have no expertise with Node.js and perfect is the enemy of good here. So I'm indefinitely tabling making this more accessible to a wider audience.
