@@ -18,9 +18,34 @@ describe 'SocialMediaBackup::Twitter' do
 		}
 	end
 
-	context '#format_archive_tweet' do
+	context '#import_twitter_archive' do
 
-		# The expected format for a tweet from the Twitter archive.
+		# is there a better way to do this
+		# this file is based on actual Twitter archive data
+		# as of 3/9/23
+		let(:archive_fixture_filename) do
+			'spec/fixtures/tweets.js'
+		end
+
+		it "raises an error if a Twitter archive is given but doesn't exist" do
+			twitter_backup = SocialMediaBackup::Twitter.new
+			expect{ twitter_backup.import_twitter_archive('garbage string') }.to raise_error(StandardError)
+		end
+
+		# check valid Twitter archive JSON
+		it "loads the JSON from the Twitter archive file correctly" do
+			twitter_backup = SocialMediaBackup::Twitter.new
+			jsonified_tweets = twitter_backup.import_twitter_archive(archive_fixture_filename)
+
+			expect(jsonified_tweets).to be_an(Array)
+			expect(jsonified_tweets[0]).to be_a(Hash)
+		end
+
+
+	end
+
+	context '#format_archive_tweets' do
+
 		let(:archive_tweet) do
 			{
 				'id' => '1',
