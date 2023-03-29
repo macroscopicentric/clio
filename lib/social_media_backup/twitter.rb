@@ -18,14 +18,18 @@ class SocialMediaBackup
 
 		TWEET_COUNT_INCREMENTER = 100000000000000
 
-		ARCHIVE_FILE_PREFIX = 'window.YTD.tweet.part0 = '
+		ARCHIVE_FILE_PREFIX = 'window.YTD.tweets.part0 = '
 
 		attr_accessor :tweets
 
-		def initialize(config=nil, backup_file=nil)
+		# backup_file is the file we write to; we don't assume
+		# someone is starting with an existing backup file OR
+		# that they already have a Twitter archive downloaded
+		# through the Twitter UI (which is also formatted differently).
+		def initialize(config=nil, backup_filename=nil)
 			@client = configure_client(config) if config
 			@screen_name = config['screen_name'] if config
-			@backup_file = backup_file
+			@backup_filename = backup_filename
 			# @tweets is a hash where each key is a tweet id and the value is
 			# the full content of the tweet as a hash.
 			@tweets = {}
@@ -34,19 +38,27 @@ class SocialMediaBackup
 		end
 
 		def configure_client(config)
-			::Twitter::REST::Client.new do |c|
+			client = ::Twitter::REST::Client.new do |c|
 				c.consumer_key = config['consumer_key']
 				c.consumer_secret = config['consumer_secret']
 				c.access_token = config['access_token']
 				c.access_token_secret = config['access_token_secret']
 			end
+
+			# This isn't a very sophisticated protection but I'm unsure
+			# if there's a way to check valid credentials using the Twitter
+			# gem without just trying to fetch something, so here we're
+			# going to make sure we at least don't have an empty string for
+			# one of the above values.
+			raise StandardError.new("Invalid Twitter client credentials") if not client.credentials?
+
+			return client
 		end
 
-		# Imports CSV tweet backup downloaded from Twitter. Twitter's API
-		# only allows you to GET the most recent 3200 tweets, so anything older
-		# than that needs to be downloaded manually from Twitter through the
-		# GUI and then imported via this method.
-		def import_and_merge_twitter_archive(archive_folder)
+		# Twitter's API only allows you to GET the most recent 3200 tweets,
+		# so anything older than that needs to be downloaded manually from
+		# Twitter through the GUI and then imported via this method.
+		def import_and_merge_twitter_archive(file_path)
 			imported_tweets = self.import_twitter_archive(file_path)
 			formatted_tweets = self.format_all_imported_tweets(imported_tweets)
 			self.merge_tweets(formatted_tweets)
@@ -58,12 +70,19 @@ class SocialMediaBackup
 		# The files are almost perfect JSON except for a weird JS prefix,
 		# so let's remove that and then actually JSONify the tweets.
 		def import_twitter_archive(file_path)
-			return JSON.load(IO.read(file_path).remove_prefix(ARCHIVE_FILE_PREFIX))
+			if not File.exist?(file_path)
+				raise StandardError.new("Twitter archive file path was given but does not exist")
+			end
+
+			# This gives you an array of hashes, where each hash has only
+			# one key ("tweet") with a corresponding value. Get rid of the
+			# extraneous key.
+			return JSON.load(File.read(file_path).delete_prefix(ARCHIVE_FILE_PREFIX)).map {|tweet| tweet['tweet'] }
 		end
 
 		# Bulk format tweets downloaded via Twitter's archive action.
 		def format_all_imported_tweets(imported_tweets)
-			return imported_tweets.map { |tweet| self.format_csv_tweet(tweet) }
+			return imported_tweets.map { |tweet| self.format_archive_tweet(tweet) }
 		end
 
 		# Bulk format tweets downloaded via the Twitter API gem.
@@ -166,7 +185,17 @@ https://help.twitter.com/en/managing-your-account/accessing-your-twitter-data
 		end
 
 		def load_tweets
-			return JSON.load(IO.read(@backup_file))
+			begin
+				tweets_from_backup = JSON.load(IO.read(@backup_file))
+			# if the file doesn't exist, assume we don't yet have a
+			# backup and make one
+			rescue Errno::ENOENT
+				puts "File #{@backup_file} doesn't exist, I'm making it now"
+				File.new(@backup_file)
+				retry
+			end
+
+			return tweets_from_backup
 		end
 
 		def save
@@ -199,7 +228,8 @@ https://help.twitter.com/en/managing-your-account/accessing-your-twitter-data
 		end
 
 		# Format a tweet hash from a hash imported from the Twitter
-		# archive action.
+		# archive action. See spec fixture for an example of how the
+		# Twitter archive is formatted as of 3/9/23.
 		def format_archive_tweet(tweet)
 			{
 				id: tweet['id'].to_i,
@@ -218,11 +248,12 @@ https://help.twitter.com/en/managing-your-account/accessing-your-twitter-data
 			return DateTime.parse(tweet['created_at']).strftime("%F %T %z")
 		end
 
-		# This would be a hell of a lot easier if the Twitter JSON
-		# archive actually matched their API docs, but for some
-		# reason they've decided to ditch the spectacularly useful
-		# `retweeted_status` field in the archive, so we're stuck
-		# with some really ugly parsing to figure out retweet data.
+		# There is a field under "tweet" called "retweeted" but
+		# it doesn't seem correlated with whether my tweet is
+		# originally a retweet, so my best guess is that it's
+		# whether _my_ copy of the tweet has ever been retweeted?
+		# Regardless, we're left with some ugly parsing here as
+		# a result.
 		def retweet?(tweet)
 			return tweet['full_text'].start_with?('RT @')
 		end
@@ -243,13 +274,20 @@ https://help.twitter.com/en/managing-your-account/accessing-your-twitter-data
 		def get_original_tweet_user_id(tweet)
 			return nil if not self.retweet?(tweet)
 
-			source_user_screen_name = tweet['full_text'].match(/RT @(.*):/).captures.first
+			# By default this is greedy so if there's more than one
+			# colon this can get messy. Just grab the first word
+			# boundary, which should include alphanumeric characters
+			# and underscores.
+			source_user_screen_name = tweet['full_text'].match(/RT @(\w+):/).captures.first
 
 			original_tweet_user_id = tweet['entities']['user_mentions'].find { |user|
-				user['screen_name'] == source_user_screen_name
-			}['id']
+				# Neither the [upper/lower]case on screen_name are consistent,
+				# absolutely incredible. Either can legitimately include uppercase
+				# letters but they may not match.
+				user['screen_name'].downcase == source_user_screen_name.downcase
+			}['id'].to_i
 
-			return original_tweet_user_id.to_i
+			return original_tweet_user_id
 		end
 
 		def reply?(tweet)

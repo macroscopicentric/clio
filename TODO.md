@@ -2,8 +2,7 @@
 
 ## Stuff to Get Back Basic Functionality
 
-1. verify Ruby upgrade, bundler version jump, and unpinned rspec version haven't caused basic runtime errors
-2. pass in filepath for twitter archive
+1. twitter archive ingest is working again, verify backup works (both the act of backing up and the act of saving anything to disk)
 
 ## Stuff That Would Be Nice to Automate
 
