@@ -1,0 +1,80 @@
+#!/usr/bin/env ruby
+lib = File.expand_path('../../lib', __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+
+require 'social_media_backup/twitter'
+require 'thor'
+require 'yaml'
+
+class SocialMediaBackup
+
+    DEFAULT_CONFIG_FILENAME = 'config.yml'
+
+    # my attempt to share the config between all command and subcommand
+    # classes. i'm not sure this is a good idea and i don't know if i'll
+    # keep it. in the meantime, all CLI classes should inherit from this.
+    # a potentially big issue with this tactic: this initialization gets
+    # called in every class that subclasses it, so it gets called 2+ times
+    # for a subcommand. this is currently not a problem but i could see it
+    # being a big deal. i couldn't figure out how to fix this. thor is
+    # poorly documented and i didn't know how to capture return values (or
+    # if it even returns things) from `invoke`. unsurprisingly, moving the
+    # initialization method to the individual classes didn't prevent it
+    # from being called multiple times either.
+    class CLIBase < Thor
+
+        attr_accessor :config
+        attr_accessor :config_filename
+
+        def initialize(*args)
+            super
+            @config_filename = @options['config']
+            @config = YAML.load_file(@config_filename)
+        end
+    end
+
+    class Config < CLIBase
+        class_option :twitter, :type => :boolean, :default => false
+
+        desc "edit", "Edit config"
+        def edit()
+            print "unimplemented"
+        end
+
+        desc "view", "Print config to console"
+        long_desc <<-LONGDESC
+            Print config for specified social media profile to console.
+            If no social media profile is specified, print all config.
+        LONGDESC
+        def view()
+            case
+            when @options['twitter']
+                print(@config['twitter'].to_yaml)
+            else
+                print(@config.to_yaml)
+            end
+        end
+    end
+
+    class CLI < CLIBase
+        class_option :config, :type => :string, :default => DEFAULT_CONFIG_FILENAME
+        desc "backup", "Back up all configured social media profiles"
+        def backup()
+            invoke :load_config
+            # SocialMediaBackup.back_up
+
+            # twitter_backup = SocialMediaBackup::Twitter.new(config['twitter'], backup_file)
+            # twitter_backup.import_and_merge_twitter_archive(twitter_archive)
+            # twitter_backup.save
+            # twitter_backup.back_up
+            # twitter_backup.save
+            puts "this is backup"
+        end
+
+        desc "config", "View or edit your smb config"
+        subcommand "config", Config
+    end
+
+end
+
+SocialMediaBackup::CLI.start(ARGV)
