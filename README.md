@@ -46,6 +46,8 @@ After checking out the repo, run `bundle install` to install depdencies. Then, r
 
 Because this is a pet project, and one I rarely work on, it's much more of an aspirational product than a real one. See TODO.md for a(n ordered) realistic list of things that I'd like to do, and WISHLIST.md for a much less realistic list of things I'd like this project to be.
 
+Rubocop is installed but does not run automatically. The entire project has been autoformatted with Rubocop.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/magpieohmy/social_media_backup. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
