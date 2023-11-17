@@ -2,13 +2,25 @@
 lib = File.expand_path('../../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
-require 'social_media_backup/twitter'
+require 'anyway_config'
 require 'thor'
 require 'yaml'
+require 'social_media_backup/twitter'
 
 class SocialMediaBackup
 
-    DEFAULT_CONFIG_FILENAME = 'config.yml'
+    class Config < Anyway::Config
+        config_name :smb
+        attr_config twitter: {
+            access_token: '',
+            access_token_secret: '',
+            archive_file_path: '',
+            backup_file_path: '',
+            consumer_key: '',
+            consumer_secret: '',
+            screen_name: '',
+        }
+    end
 
     # my attempt to share the config between all command and subcommand
     # classes. i'm not sure this is a good idea and i don't know if i'll
@@ -29,13 +41,11 @@ class SocialMediaBackup
         def initialize(*args)
             super
             @config_filename = @options['config']
-            @config = YAML.load_file(@config_filename)
+            @config = Config.new()
         end
     end
 
-    class Config < CLIBase
-        class_option :twitter, :type => :boolean, :default => false
-
+    class CLIConfig < CLIBase
         desc "edit", "Edit config"
         def edit()
             print "unimplemented"
@@ -48,31 +58,33 @@ class SocialMediaBackup
         LONGDESC
         def view()
             case
-            when @options['twitter']
-                print(@config['twitter'].to_yaml)
+            when @parent_options['twitter']
+                pp @config.twitter
             else
-                print(@config.to_yaml)
+                pp @config
             end
         end
     end
 
     class CLI < CLIBase
-        class_option :config, :type => :string, :default => DEFAULT_CONFIG_FILENAME
+        class_option :twitter, :type => :boolean, :default => false
         desc "backup", "Back up all configured social media profiles"
         def backup()
-            invoke :load_config
-            # SocialMediaBackup.back_up
-
-            # twitter_backup = SocialMediaBackup::Twitter.new(config['twitter'], backup_file)
-            # twitter_backup.import_and_merge_twitter_archive(twitter_archive)
-            # twitter_backup.save
-            # twitter_backup.back_up
-            # twitter_backup.save
-            puts "this is backup"
+            case
+            when @options['twitter']
+                # twitter_backup = SocialMediaBackup::Twitter.new(config['twitter'], backup_file)
+                # twitter_backup.import_and_merge_twitter_archive(twitter_archive)
+                # twitter_backup.save
+                # twitter_backup.back_up
+                # twitter_backup.save
+            else
+                # SocialMediaBackup.back_up
+                puts "this is backup"
+            end
         end
 
         desc "config", "View or edit your smb config"
-        subcommand "config", Config
+        subcommand "config", CLIConfig
     end
 
 end

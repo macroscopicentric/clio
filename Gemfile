@@ -4,3 +4,5 @@ source 'https://rubygems.org'
 gemspec
 
 gem "thor", "~> 1.3"
+
+gem "anyway_config", "~> 2.5"

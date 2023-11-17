@@ -27,10 +27,18 @@ Or install it yourself as:
 Use the bin file as the entrypoint, ex:
 
 ```shell
-bin/smb [twitter backup] [twitter archive]
+bin/smb backup
 ```
 
-Where "twitter backup" is a JSON file of a previous backup via this gem, and "twitter archive" is a tweets.js file downloaded as part of your Twitter archive (fetched manually via the Twitter UI).
+### Config
+
+SMB expects a config file in the config subdirectory that matches `example.yml` and is called `smb.yml`.
+
+### Twitter Config
+
+`archive_file_path`: optional. The path to a download via the Twitter UI, typically a single file within the archive called `tweets.js`. 
+
+`backup_file_path`: optional. The path to a previous backup using Social Media Backup, currently configured to be called `tweets.json`.
 
 ## Development
 

@@ -1,14 +1,14 @@
 .DS_Store
 /.bundle/
 /.yardoc
-/Gemfile.lock
-/config.yml
 /_yardoc/
+/config/
 /coverage/
 /doc/
+/Gemfile.lock
 /pkg/
 /spec/reports/
 /tmp/
 *.json
 *.csv
-/twitter-backup
+tweets.js
