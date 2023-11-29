@@ -3,20 +3,22 @@
 
 require 'yaml'
 
-class SocialMediaBackup
-  require 'social_media_backup/twitter'
+module SocialMediaBackup
+  class BackupEngine
+    require 'social_media_backup/twitter'
 
-  SOCIAL_MEDIA_PLATFORMS = [Twitter].freeze
+    SOCIAL_MEDIA_PLATFORMS = [Twitter].freeze
 
-  def initialize(config_path)
-    @config = load_config(config_path)
-  end
+    def initialize(config_path)
+      @config = load_config(config_path)
+    end
 
-  def self.back_up
-    SOCIAL_MEDIA_PLATFORMS.each(&:back_up)
-  end
+    def self.back_up
+      SOCIAL_MEDIA_PLATFORMS.each(&:back_up)
+    end
 
-  def load_config(config_path)
-    YAML.load_file(config_path)
+    def load_config(config_path)
+      YAML.load_file(config_path)
+    end
   end
 end

@@ -9,8 +9,7 @@ require 'thor'
 require 'yaml'
 require 'social_media_backup/twitter'
 
-# This should eventually be a module.
-class SocialMediaBackup
+module SocialMediaBackup
   # Define valid config fields using anyway_config.
   # Pros: more testable, more explicit, attribute-based
   # access rather than nested hashes.
