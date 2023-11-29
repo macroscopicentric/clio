@@ -1,17 +1,19 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 require 'yaml'
 
 class SocialMediaBackup
   require 'social_media_backup/twitter'
 
-  SOCIAL_MEDIA_PLATFORMS = [Twitter]
+  SOCIAL_MEDIA_PLATFORMS = [Twitter].freeze
 
   def initialize(config_path)
     @config = load_config(config_path)
   end
 
   def self.back_up
-    SOCIAL_MEDIA_PLATFORMS.each { |platform| platform.back_up }
+    SOCIAL_MEDIA_PLATFORMS.each(&:back_up)
   end
 
   def load_config(config_path)

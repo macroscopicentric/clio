@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 lib = File.expand_path('../lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
@@ -7,7 +9,11 @@ require 'thor'
 require 'yaml'
 require 'social_media_backup/twitter'
 
+# This should eventually be a module.
 class SocialMediaBackup
+  # Define valid config fields using anyway_config.
+  # Pros: more testable, more explicit, attribute-based
+  # access rather than nested hashes.
   class Config < Anyway::Config
     config_name :smb
     attr_config twitter: {
@@ -21,15 +27,17 @@ class SocialMediaBackup
     }
   end
 
-  # my attempt to share the config between all command and subcommand
-  # classes. i'm not sure this is a good idea and i don't know if i'll
-  # keep it. in the meantime, all CLI classes should inherit from this.
-  # a potentially big issue with this tactic: this initialization gets
+  # This is more like an abstract class than something that I
+  # expect to be instantiate and used directly. All CLI classes should
+  # inherit from this.
+  #
+  # This is my attempt to share the config between all command and subcommand
+  # classes. A potentially big issue with this tactic: this initialization gets
   # called in every class that subclasses it, so it gets called 2+ times
-  # for a subcommand. this is currently not a problem but i could see it
-  # being a big deal. i couldn't figure out how to fix this. thor is
-  # poorly documented and i didn't know how to capture return values (or
-  # if it even returns things) from `invoke`. unsurprisingly, moving the
+  # for a subcommand. This is currently not a problem but I could see it
+  # being a big deal. I couldn't figure out how to fix this. Thor is
+  # poorly documented and I didn't know how to capture return values (or
+  # if it even returns things) from `invoke`. Unsurprisingly, moving the
   # initialization method to the individual classes didn't prevent it
   # from being called multiple times either.
   class CLIBase < Thor
@@ -42,6 +50,7 @@ class SocialMediaBackup
     end
   end
 
+  # CLI subcommands for config command
   class CLIConfig < CLIBase
     desc 'edit', 'Edit config'
     def edit
@@ -62,6 +71,7 @@ class SocialMediaBackup
     end
   end
 
+  # Primary CLI commands
   class CLI < CLIBase
     class_option :twitter, type: :boolean, default: false
     desc 'backup', 'Back up all configured social media profiles'

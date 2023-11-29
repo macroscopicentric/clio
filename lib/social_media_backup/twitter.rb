@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 require 'json'
 require 'csv'
 require 'twitter'
@@ -14,7 +16,7 @@ class SocialMediaBackup
       'Twitter::Media::AnimatedGif' => 'animated_gif',
       'Twitter::Media::Photo' => 'photo',
       'Twitter::Media::Video' => 'video'
-    }
+    }.freeze
 
     TWEET_COUNT_INCREMENTER = 100_000_000_000_000
 
@@ -75,7 +77,7 @@ class SocialMediaBackup
       # This gives you an array of hashes, where each hash has only
       # one key ("tweet") with a corresponding value. Get rid of the
       # extraneous key.
-      JSON.load(File.read(file_path).delete_prefix(ARCHIVE_FILE_PREFIX)).map { |tweet| tweet['tweet'] }
+      JSON.parse(File.read(file_path).delete_prefix(ARCHIVE_FILE_PREFIX)).map { |tweet| tweet['tweet'] }
     end
 
     # Bulk format tweets downloaded via Twitter's archive action.
@@ -134,7 +136,7 @@ class SocialMediaBackup
       cursor = @newest_tweet_id
       max_id = calculate_max_id(cursor)
       until @newest_tweet_id == newest_tweet_id
-        new_tweets = get_tweets(count: 200, since_id: cursor, max_id: max_id)
+        new_tweets = get_tweets(count: 200, since_id: cursor, max_id:)
         formatted_tweets = format_all_api_tweets(new_tweets)
         merge_tweets(formatted_tweets)
         find_and_set_newest_tweet_id
@@ -147,9 +149,13 @@ class SocialMediaBackup
       cursor + TWEET_COUNT_INCREMENTER
     end
 
+    # rubocop:disable Naming/AccessorMethodName
+    # leave me alone, rubocop, this isn't an attr getter
+    # https://stackoverflow.com/questions/26097084/why-does-rubocop-or-the-ruby-style-guide-prefer-not-to-use-get-or-set
     def get_newest_tweet
       get_tweets(count: 1, since_id: @newest_tweet_id).first
     end
+    # rubocop:enable Naming/AccessorMethodName
 
     def get_tweets(**opts)
       @client.user_timeline(@screen_name, **opts, trim_user: true)
@@ -176,12 +182,12 @@ https://help.twitter.com/en/managing-your-account/accessing-your-twitter-data
     # reloaded.
     def load_and_format_tweets
       tweets = load_tweets
-      tweets.map { |k, v| [k.to_i, v] }.to_h
+      tweets.transform_keys(&:to_i)
     end
 
     def load_tweets
       begin
-        tweets_from_backup = JSON.load(IO.read(@backup_file))
+        tweets_from_backup = JSON.parse(IO.read(@backup_file))
       # if the file doesn't exist, assume we don't yet have a
       # backup and make one
       rescue Errno::ENOENT
