@@ -2,9 +2,10 @@
 
 A service to back up different social media types to a Postgres database. This is EXTREMELY work-in-progress, do not expect literally anything to work properly.
 
-###Supported Social Medias
+### Supported Social Medias
 
-* Twitter
+* ~~Twitter~~
+* Tumblr
 
 ## Installation
 
@@ -34,11 +35,9 @@ bin/smb backup
 
 SMB expects a config file in the config subdirectory that matches `example.yml` and is called `smb.yml`.
 
-### Twitter Config
+### Twitter
 
-`archive_file_path`: optional. The path to a download via the Twitter UI, typically a single file within the archive called `tweets.js`. 
-
-`backup_file_path`: optional. The path to a previous backup using Social Media Backup, currently configured to be called `tweets.json`.
+As of Twitter's API V2, there is no free tier with read capabilities for accessing Twitter via the API anymore. So while there is a new gem ([x-ruby](https://sferik.github.io/x-ruby/)) to support accessing V2, I have simply deleted that backup engine. You may request an archive of your own Twitter data [from your Twitter settings here](https://twitter.com/settings/download_your_data) instead.
 
 ## Development
 
