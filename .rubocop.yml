@@ -1,8 +1,10 @@
-Style/Documentation:
-  Enabled: false
+AllCops:
+  SuggestExtensions: false
 Metrics/BlockLength:
   Enabled: false
 Metrics/ClassLength:
   Enabled: false
 Metrics/MethodLength:
+  Enabled: false
+Style/Documentation:
   Enabled: false
