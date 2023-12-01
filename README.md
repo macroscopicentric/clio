@@ -43,9 +43,12 @@ As of Twitter's API V2, there is no free tier with read capabilities for accessi
 
 After checking out the repo, run `bundle install` to install depdencies. Then, run `rake spec` to run the tests.
 
-Because this is a pet project, and one I rarely work on, it's much more of an aspirational product than a real one. See TODO.md for a(n ordered) realistic list of things that I'd like to do, and WISHLIST.md for a much less realistic list of things I'd like this project to be.
+To install git hooks (currently just a pre-commit hook that runs Rubocop for linting), do
+```sh
+$ ./scripts/install-hooks.sh
+```
 
-Rubocop is installed but does not run automatically. The entire project has been autoformatted with Rubocop.
+Because this is a pet project, and one I rarely work on, it's much more of an aspirational product than a real one. See TODO.md for a(n ordered) realistic list of things that I'd like to do, and WISHLIST.md for a much less realistic list of things I'd like this project to be.
 
 ## Contributing
 
