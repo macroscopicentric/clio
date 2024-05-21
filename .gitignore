@@ -1,5 +1,6 @@
 .DS_Store
-/config/smb.yml
+/config/app.yml
+/config/user.yml
 /Gemfile.lock
 /pkg/
 /spec/reports/
