@@ -2,7 +2,7 @@
 
 require_relative '../spec_helper'
 
-describe 'SocialMediaBackup::Twitter' do
+describe 'Clio::Twitter' do
   let(:tweet_text) { 'Exciting stuff happened.' }
 
   let(:tweet) do
@@ -28,13 +28,13 @@ describe 'SocialMediaBackup::Twitter' do
     end
 
     it "raises an error if a Twitter archive is given but doesn't exist" do
-      twitter_backup = SocialMediaBackup::Twitter.new
+      twitter_backup = Clio::Twitter.new
       expect { twitter_backup.import_twitter_archive('garbage string') }.to raise_error(StandardError)
     end
 
     # check valid Twitter archive JSON
     it 'loads the JSON from the Twitter archive file correctly' do
-      twitter_backup = SocialMediaBackup::Twitter.new
+      twitter_backup = Clio::Twitter.new
       jsonified_tweets = twitter_backup.import_twitter_archive(archive_fixture_filename)
 
       expect(jsonified_tweets).to be_an(Array)
@@ -107,14 +107,14 @@ describe 'SocialMediaBackup::Twitter' do
     end
 
     it 'formats a basic tweet from the Twitter archive correctly' do
-      twitter_backup = SocialMediaBackup::Twitter.new
+      twitter_backup = Clio::Twitter.new
       formatted_tweet = twitter_backup.format_archive_tweet(archive_tweet)
 
       expect(formatted_tweet).to eq(tweet)
     end
 
     it 'formats a reply tweet from the Twitter archive correctly' do
-      twitter_backup = SocialMediaBackup::Twitter.new
+      twitter_backup = Clio::Twitter.new
       formatted_tweet = twitter_backup.format_archive_tweet(archive_reply_tweet)
 
       expect(formatted_tweet).to include(reply: true)
@@ -122,7 +122,7 @@ describe 'SocialMediaBackup::Twitter' do
     end
 
     it 'formats a retweet from the Twitter archive correctly' do
-      twitter_backup = SocialMediaBackup::Twitter.new
+      twitter_backup = Clio::Twitter.new
       formatted_tweet = twitter_backup.format_archive_tweet(archive_retweeted_tweet)
 
       expect(formatted_tweet).to include(retweet: true)
@@ -130,7 +130,7 @@ describe 'SocialMediaBackup::Twitter' do
     end
 
     it 'formats a tweet with media from the Twitter archive correctly' do
-      twitter_backup = SocialMediaBackup::Twitter.new
+      twitter_backup = Clio::Twitter.new
       formatted_tweet = twitter_backup.format_archive_tweet(archive_tweet_with_media)
 
       expect(formatted_tweet[:media]).to_not be_empty
@@ -139,7 +139,7 @@ describe 'SocialMediaBackup::Twitter' do
 
   context '#merge_tweets' do
     let(:twitter_backup) do
-      twitter_backup = SocialMediaBackup::Twitter.new
+      twitter_backup = Clio::Twitter.new
       twitter_backup.tweets = { tweet[:id] => tweet }
       return twitter_backup
     end

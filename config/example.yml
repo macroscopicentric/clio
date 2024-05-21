@@ -1,0 +1,8 @@
+twitter:
+  access_token: "Your_Access_Token_Here"
+  access_token_secret: "Your_Access_Token_Secret_Here"
+  archive_file_path: ""
+  backup_file_path: ""
+  consumer_key: "Your_Key_Here"
+  consumer_secret: "Your_Secret_Here"
+  screen_name: "screen_name"

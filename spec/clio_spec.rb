@@ -2,5 +2,5 @@
 
 require 'spec_helper'
 
-describe SocialMediaBackup do
+describe Clio do
 end

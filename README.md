@@ -1,6 +1,7 @@
-# Social Media Backup
+# Clio - A Social Media Backup
 
-A service to back up different social media types to a Postgres database. This is EXTREMELY work-in-progress, do not expect literally anything to work properly.
+The vision:
+A service to back up different social media types and bundle them into a directory of files on disk that can then be compressed down into a single file for portability. Clio should be able to be run as a local web app or on a local server like a NAS (open question: scheduling?), and long-term may be hosted as more of a SAAS type product on the internet somewhere.
 
 ### Supported Social Medias
 
@@ -12,7 +13,7 @@ A service to back up different social media types to a Postgres database. This i
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'social_media_backup'
+gem 'clio'
 ```
 
 And then execute:
@@ -21,7 +22,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install social_media_backup
+    $ gem install clio
 
 ## Usage
 
@@ -33,7 +34,7 @@ bin/smb backup
 
 ### Config
 
-SMB expects a config file in the config subdirectory that matches `example.yml` and is called `smb.yml`.
+Clio expects a config file in the config subdirectory that matches `example.yml` and is called `smb.yml`.
 
 ### Twitter
 
@@ -48,11 +49,11 @@ To install git hooks (currently just a pre-commit hook that runs Rubocop for lin
 $ ./scripts/install-hooks.sh
 ```
 
-Because this is a pet project, and one I rarely work on, it's much more of an aspirational product than a real one. See TODO.md for a(n ordered) realistic list of things that I'd like to do, and WISHLIST.md for a much less realistic list of things I'd like this project to be.
+Because this is a pet project, and one I rarely work on, it's much more of an aspirational product than a real one. See TODO.md for a(n ordered) list of next steps.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/magpieohmy/social_media_backup. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/magpieohmy/clio. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
 
 
 ## License

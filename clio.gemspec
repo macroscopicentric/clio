@@ -2,16 +2,16 @@
 
 lib = File.expand_path('lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'social_media_backup/version'
+require 'clio/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'social_media_backup'
-  spec.version       = SocialMediaBackup::VERSION
+  spec.name          = 'clio'
+  spec.version       = Clio::VERSION
   spec.authors       = ['Rachel King']
   spec.email         = ['rachel.b.king@gmail.com']
 
   spec.summary       = 'Back up a variety of social media accounts.'
-  spec.homepage      = 'https://github.com/macroscopicentric/social_media_backup'
+  spec.homepage      = 'https://github.com/macroscopicentric/clio'
   spec.license       = 'MIT'
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or

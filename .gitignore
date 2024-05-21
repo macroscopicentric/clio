@@ -1,10 +1,5 @@
 .DS_Store
-/.bundle/
-/.yardoc
-/_yardoc/
-/config/
-/coverage/
-/doc/
+/config/smb.yml
 /Gemfile.lock
 /pkg/
 /spec/reports/

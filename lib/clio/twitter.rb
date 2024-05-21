@@ -6,7 +6,7 @@ require 'csv'
 require 'twitter'
 require 'date'
 
-module SocialMediaBackup
+module Clio
   class Twitter
     # TODO: update twitter archive methods to deal with new twitter archive style
     # TODO: just use the twitter gem Tweet class to handle tweets in memory you dingdong
